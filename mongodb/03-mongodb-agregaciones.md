@@ -1,85 +1,212 @@
+
 # Agregaciones en MongoDB (Framework)
 
-## Metodos para para reailizar agregaciones simples
+## Métodos para realizar agregaciones simples
+- distinct(): Devuelve valores no duplicados
+- countDocuments(): Cuenta los documentos en una colección 
+- estimatedDocumentCount(): Cuenta de manera aproximada durante un periodo de tiempo
 
--- distinct(): Me devuelve valores no duplicados
--- CountDocument(): Cuenta los documentos en una coleccion
--- estimatedDocumentCount(): Cuenta manera aproximada durante un periodo de tiempo
+## Una Aggregation pipeline consta de una o más etapas (stage) que procesan documentos
 
-## Una Agreggation pipeline consta de una o mas etapas (stage) que procesan documentos 
+1. Cada etapa realiza una operación en los documentos de entrada. Por ejemplo, una fase puede filtrar documentos, agrupar documentos y calcular valores.
+2. Los documentos que se generan en una fase pasan a la siguiente fase.
+3. Puede devolver resultados para grupos de documentos como totales, máximo, mínimo, etc.
 
-1. Cada etapa realiza una operacion en los documentos de entrada, por ejemplo, una fase puede filtrar documentos, agrupar documentos, y calcular valores.
+### Se utiliza la cláusula "aggregate"
 
-2. Los documentos que se generan en una fase, pasan a la siguiente fase.
+- Existen una serie de operadores que se pueden utilizar para realizar operaciones. Se tienen distintos tipos: etapa, de comparación, booleanos, aritméticos, de cadena, etc.
 
-3. Puede devolver resultados para grupos de documentos como totales, maximo, minimo , etc.
+## Métodos Simples: countDocuments() y distinct()
 
-## Se utiliza la clausula "agreggate"
-
--- Existen una serie de operadores que se pueden utilzar para realizar operaciones. Se tienen distintos tipos: etapa, comparacion,booleanos, aritmeticos, de cadena, etc.
-
-## Metodos simples : countDocuments, y distinct()
-
---Contar los documentos de la coleccion
+1. Contar los documentos de la colección libros
+```json
+db.libros.countDocuments()
+```
 
 2. Contar los documentos de la editorial Terra
+```json
+db.libros.countDocuments({editorial: {$eq:'Terra'}})
+db.libros.countDocuments({editorial:'Terra'})
+```
 
-db1> db.libros.countDocuments({editorial: {$eq:'Biblio'}})
+3. Mostrar todos los libros mostrando solamente la editorial
 
-3. Seleccionar o mostrar todos los libros mostrando solamente la editorial
+4. Mostrar todas las distintas editoriales
+```json
+db.libros.distinct('editorial')
+```
+[Documentación de Agregaciones](https://www.mongodb.com/docs/manual/aggregation/)
 
-db1> db.libros.distinct({},{_id:0, editorial:1})
+## $match. Una pipeline básica
+## Tienen funciones de etapa
+```json
+db.libros.aggregate(
+    [
+        {
+            $match:{editorial:"Terra"}
+        }
+    ]
+)
+```
 
-
-4. Mostrar todoso los libros distintas editoriales
-
-db1> db.libros.distinct("editorial")
-
-[Documentacion de Agregaciones](https://www.mongodb.com/docs/manual/aggregation/)
-
-## Match $match. Un pipeline basica
-
-## Tiene una funcion de tapa
-
-db.libros.agreggate([{$match:editorial:"Terra"}])
-
-## $project Incluir y renombrar campos
-
-db.libros.aggregate([
+## $project. Incluir y renombrar campos
+```json
+db.libros.aggregate(
+   [
     {
-        $match: { editorial: "Terra" }
+        $match:{editorial:'Terra'}
     },
     {
-        $project: {
-            _id: 0,
-            titulo: 1,
-            precio: 1,
-            NombreEditorial: "$editorial"
+        $project:{
+            _id:0,
+            titulo:1, 
+            precio:1, 
+            NombreEditorial:"$editorial",
+            editorial:1
         }
     }
-])
+   ]  
+)
+```
 
-## $group.Agrupaciones
+- Generado por MongoCompass
+```json
+[
+  {
+    $match:
+      {
+        editorial: "Terra"
+      }
+  },
+  {
+    $project:
+      {
+        _id: 0,
+        precio: 1,
+        cantidad: 1,
+        NombreEditorial: "$editorial",
+        editorial: 1
+      }
+  }
+]
+```
 
-Cuantos documentos hay por cada una de las editoriales
+## Crear un campo calculado con #project
+```json
+[
+  {
+    $match:
+      {
+        editorial: "Terra"
+      }
+  },
+  {
+    $project:
+      {
+        _id: 0,
+        titulo: 1,
+        precio: 1,
+        cantidad: 1,
+        "Nombre Editorial": "$editorial",
+        "Total de Ganancias": {
+          $multiply: ["$precio", "$cantidad"]
+        }
+      }
+  }
+]
+```
 
-_id: "$editorial",
-"Numeero Documentos":{
-    $count: {}
-}
+## sort. Ordenaciones
+```json
+[
+  {
+    $match:
+      {
+        editorial: "Terra"
+      }
+  },
+  {
+    $project:
+      {
+        _id: 0,
+        titulo: 1,
+        precio: 1,
+        cantidad: 1,
+        "Nombre Editorial": "$editorial",
+        "Total de Ganancias": {
+          $multiply: ["$precio", "$cantidad"]
+        }
+      }
+  },
+  {
+    $sort:
+      {
+        precio: 1
+      }
+  }
+]
+```
 
-Cuantos documentos hay por cada una de las editoriales por numero de documentos de manera descendente
+## $group. Agrupaciones
 
+[Agrupaciones](https://www.mongodb.com/docs/manual/reference/operator/aggregation/group/)
 
-
--- Utilizando Mongo Atlas Base de Datos sample_airnb
--- Agrupar por tipo de propiedad, mostrando el numero de propiedades y el promedio de sus precios 
-
-
+- Cuántos documentos hay por cada una de las editoriales
+```json
 [
   {
     $group:
-     
+      {
+        _id: "$editorial",
+        "Numero Documentos": {
+          $count: {}
+        }
+      }
+  }
+]
+```
+
+- Cuántos documentos hay por cada una de las editoriales por número de documentos de manera descendente
+```json
+[
+  {
+    $group:
+      {
+        _id: "$editorial",
+        "Numero Documentos": {
+          $count: {}
+        }
+      }
+  },
+  {
+    $sort:
+      {
+        "Numero Documentos": -1
+      }
+  }
+]
+```
+
+- Utilizando Mongo Atlas Base de Datos sample_airbnb
+- Agrupar por tipo de propiedad, mostrando el número de propiedades y el promedio de sus precios
+```json
+{
+  _id: "$property_type",
+  Numero: {
+    $count: {}
+  },
+  Media:
+  {
+    $avg:"$price"
+  }
+}
+```
+
+- Operadores $set 
+```json
+[
+  {
+    $group:
       {
         _id: "$property_type",
         Numero: {
@@ -87,161 +214,200 @@ Cuantos documentos hay por cada una de las editoriales por numero de documentos 
         },
         Media: {
           $avg: "$price"
-        }
-      }
-  }
-]
-
---Operadores $set y $unset
-
-[
-  {
-    $group: {
-      _id: "$property_type",
-      Numero: {
-        $count: {}
-      },
-      Media: {
-        $avg: "$price"
+        }
       }
-    }
   },
   {
     $set:
-    
       {
-        Media_total: {
+        Media_Total: {
           $trunc: "$Media"
-        }
-      }
-  }
+        }
+      }
+  }
 ]
+```
 
-
-Operador $unset
+- Operador $unset
+```json
 [
   {
-    $group: {
-      _id: "$property_type",
-      Numero: {
-        $count: {}
-      },
-      Media: {
-        $avg: "$price"
+    $group:
+      {
+        _id: "$property_type",
+        Numero: {
+          $count: {}
+        },
+        Media: {
+          $avg: "$price"
+        }
       }
-    }
   },
   {
-    $set: {
-      Media_total: {
-        $trunc: "$Media"
+    $set:
+      {
+        Media_Total: {
+          $trunc: "$Media"
+        }
       }
-    }
   },
   {
     $unset:
-    
-      ["Media","Media_total"]
-  }
+      ["Media", "Media_Total"]
+  }
 ]
+```
 
-
--- Creando nuevas colecciones utilizando el Operador $out
--- Debe ser el ultimo en la agregacion
-
-
-Ejemplo con operadores de comparacion
-
-{
-  _id:0,
-  price:1,
-  name:1,
-  
-  caro:{
-    $gt:["$price",300]
+- Creando nuevas colecciones utilizando el operador $out
+```json
+[
+  {
+    $group:
+      {
+        _id: "$property_type",
+        Numero: {
+          $count: {}
+        },
+        Media: {
+          $avg: "$price"
+        }
+      }
   },
-  medio:{
-    $and:[
-      {$gte:["$price",100]},
-      {$lte:["price",300]}
-    ]
-  },
-  baratito:{
-    $lt:["price",100]
+  {
+    $set:
+      {
+        Media_Total: {
+          $trunc: "$Media"
+        }
+      }
+  },
+  {
+    $unset:
+      ["Media"]
+  },
+  {
+    $out:
+      {
+        db: "sample_airbnb",
+        coll: "media_propiedades"
+      }
   }
-}
+]
+```
 
-
---- $cond. Devuelve valores segun una condicion (es parecido a un operador ternario de un lenguaje de programacion)
-
-{
-  _id: 0,
-  price: 1,
-  name: 1,
-
-  caro: {
-    $cond: [
-      { $gt: ["$price", 300] },
-      "si",
-      "no"
-    ]
-  },
-
-  medio: {
-    $cond: [
-      { 
-        $and: [
-          { $gte: ["$price", 100] },
-          { $lte: ["$price", 300] }
-        ] 
-      },
-      "si",
-      "no"
-    ]
-  },
-
-  baratito: {
-    $cond: [
-      { $lt: ["$price", 100] },
-      "si",
-      "no"
-    ]
+- Ejemplos con operadores de comparación y lógicos
+```json
+[
+  {
+    $project:
+      {
+        _id: 0,
+        price: 1,
+        name: 1,
+        room_type: 1,
+        caro: {
+          $gt: ["$price", 300]
+        },
+        medio: {
+          $and: [
+            {
+              $gte: ["$price", 100]
+            },
+            {
+              $lte: ["$price", 300]
+            }
+          ]
+        },
+        baratito: {
+          $lt: ["$price", 100]
+        }
+      }
   }
-}
+]
+```
 
---Views
-db.createView("ganancias_libros",
+- $cond - Devuelve valores según una condición (es parecido a un operador ternario de un lenguaje de programación)
+```json
+[
+  {
+    $project:
+      {
+        _id: 0,
+        price: 1,
+        name: 1,
+        room_type: 1,
+        caro: {
+          $cond: [
+            {
+              $gt: ["$price", 300]
+            },
+            "Si",
+            "No"
+          ]
+        },
+        medio: {
+          $cond: [
+            {
+              $and: [
+                {
+                  $gte: ["$price", 100]
+                },
+                {
+                  $lte: ["$price", 300]
+                }
+              ]
+            },
+            "Si",
+            "No"
+          ]
+        },
+        baratito: {
+          $cond: [
+            {
+              $lt: ["$price", 100]
+            },
+            "Si",
+            "No"
+          ]
+        }
+      }
+  }
+]
+```
+
+- Views
+```json
+db.createView("ganancias_libros", 
 "libros",
 [
   {
-    $match: {
-      editorial: "Biblio"
-    }
-  },
-  {
-    $project: {
-      _id: 0,
-      titulo: 1,
-      precio: 1,
-      cantidad: 1,
-      "Nombre de editorial": "editorial",
-      "Total de ganancias": {
-        $multiply: ["$precio", "$cantidad"]
+    $match:
+      {
+        editorial: "Biblio"
       }
-    }
   },
   {
-    $sort: {
-      "Total de ganancias": -1
-    }
+    $project:
+      {
+        _id: 0,
+        titulo: 1,
+        precio: 1,
+        cantidad: 1,
+        "Nombre de Editorial": "$editorial",
+        "Total de Ganancias": {
+          $multiply: ["$precio", "$cantidad"]
+        }
+      }
+  },
+  {
+    $sort:
+      {
+        "Total de Ganancias": -1
+      }
   }
 ])
 
-db.ganancias_libros.find(
-  { "Total de Ganancias": { $lte: 240 } },
-  {
-    titulo: 1,
-    "Total de Ganancias": 1,
-    _id: 0
-  }
-).sort({ titulo: -1 });
+db["ganancias_libros"].find(
+  {"Total de Ganancias":{$lte:240}}
+  ,{titulo:1, 'Total de Ganancias':1}).sort({titulo:-1})
+```

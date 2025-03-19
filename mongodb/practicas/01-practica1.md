@@ -1,80 +1,133 @@
-# Practica 1: Base de datos, colecciones e inserts
 
-1.Conectarnos con mongosh a Mongodb
-2.Crear una base de datos llamado curso
-3.Comprobar que la base de datos no existe
-4.Crear una coleccion que se llame facturas y mostrarla
+# Práctica 1: Base de Datos, Colecciones e Inserts
 
-``` json
-db.createCollection("facturas")
+## 1. Conexión con `mongosh` a MongoDB
+
+1.1. Conectarnos a la base de datos MongoDB utilizando `mongosh`.
+
+## 2. Crear una Base de Datos llamada `curso`
+
+2.1. Comprobamos que la base de datos no exista previamente.
+
+## 3. Crear una Colección llamada `facturas` y mostrarla
+
+```json
+db.createCollection('facturas')
 show collections
 ```
 
-5.Insertar un documento con los siguientes datos
+## 4. Insertar un Documento en la Colección `facturas`
 
-| cod_facturas | Cliente         | Total |
-|-------------|----------------|------|
-| 010         | Frutas Ramirez  | 223  |
+A continuación se insertan los siguientes documentos:
 
-| cod_facturas | Cliente         | Total |
-|-------------|----------------|------|
-| 020        | Frutas Ferreteria Juan | 140  |
+| Código    | Valor         |
+|-----------|---------------|
+| Cod_Factura | 10            |
+| Cliente    | Frutas Ramirez |
+| Total      | 223           |
 
+| Código    | Valor          |
+|-----------|----------------|
+| Cod_Factura | 20             |
+| Cliente    | Ferretería Juan |
+| Total      | 140            |
 
-``` json
-db.facturas.insertOne( {
-cod_factura: 10,
-      cliente: "Frutas Ramirez",
-       total: 223 })
+```json 
+db.facturas.insertOne({ cod_factura: 10, cliente: 'Frutas Ramirez', total: 223 })
+db.facturas.insertOne({ cod_factura: 20, cliente: 'Ferretería Juan', total: 140 })
 ```
 
-``` json
-db.facturas.insertOne( {
-cod_factura: 20,
-      cliente: "Ferreteria Juan",
-       total: 140 })
+## 5. Crear una Nueva Colección con `insertOne`
+
+Utilizando `insertOne`, creamos una colección llamada `productos` e insertamos un documento con los siguientes datos:
+
+| Código         | Valor          |
+|----------------|----------------|
+| Cod_producto   | 1              |
+| Nombre         | Tornillo x 1"  |
+| Precio         | 2              |
+
+```json
+db.productos.insertOne({ cod_producto: 1, nombre: "Tornillo x 1", precio: 2, unidades: 1500 })
 ```
 
-6.Crear una nueva coleccion pero usando directamente el insertOne:
-insertar un documento en la coleccion productos con los siguientes datos:
+## 6. Insertar un Documento en `productos` con un Array
 
-|Codigo | valor|
-| cod_facturas | Cliente         | Total |
-|-------------|----------------|------|
-| 020        | Frutas Ferreteria Juan | 140  |
+Insertamos un nuevo documento que contiene un array en la colección `productos`:
 
-``` json
+| Código         | Valor          |
+|----------------|----------------|
+| Cod_producto   | 2              |
+| Nombre         | Martillo       |
+| Precio         | 20             |
+| Unidades       | 50             |
+| Fabricantes    | fab1, fab2, fab3, fab4 |
+
+```json
 db.productos.insertOne({
-     cod_producto: 1,
-      nombre: "tornillo x 1",
-       precio: 2,
-        unidades: 1500 })
+  cod_producto: 2,
+  nombre: 'Martillo',
+  precio: 20,
+  unidades: 50,
+  fabricantes: ['fab1', 'fab2', 'fab3', 'fab4']
+})
 ```
 
-7.Crear un nuevo documento de producto que contenga un array.
-Con los siquientes datos.
-``` json
-db.productos.insertOne({ 
-    cod_producto: 2,
-     nombre: "martillo",
-      precio: 20,
-       unidades: 50,
-        fabricantes:["fab1","fab2","fab3","fab4"] })
+## 7. Borrar la Colección `Facturas` y Comprobar su Eliminación
+
+```json
+db.facturas.drop()
+show collections
 ```
-8.Borrar la coleccion facturas y comprobar que se borro
 
-curso> db.facturas.drop()
-true
-curso> show collections
-productos
-curso>
+## 8. Insertar un Documento en la Colección `fabricantes`
 
-9.Insertar un documento en una coleccion denominada fabricantes para probar los subdocumentos y
-la clave _id personalizada
+En este paso, insertamos un subdocumento y utilizamos una clave `_id` personalizada en la colección `fabricantes`:
 
-curso> db.fabricantes.insertOne({ _id: 1, nombre: "fab1", localidad: { ciudad: "buenos aires", pais: "argentina", calle: "Calle pez 27", cod: 2090 } })
+| Código    | Valor       |
+|-----------|-------------|
+| id        | 1           |
+| Nombre    | fab1        |
+| Localidad | ciudad: Buenos Aires, país: Argentina, calle: Calle Pez 27, cod_postal: 2900 |
 
-10.Realizar una insercion de varios documentos en la coleccion productos
+```json
+db.fabricantes.insertOne({
+  _id: 1,
+  nombre: 'fab1',
+  localidad: {
+    ciudad: 'Buenos Aires',
+    pais: 'Argentina',
+    calle: 'Calle Pez 27',
+    cod_postal: 2900
+  }
+})
+```
+
+## 9. Insertar Varios Documentos en la Colección `productos`
+
+Finalmente, insertamos múltiples documentos en la colección `productos` con los siguientes datos:
+
+| Código         | Valor          |
+|----------------|----------------|
+| Cod_producto   | 3              |
+| Nombre         | Alicates       |
+| Precio         | 10             |
+| Unidades       | 25             |
+| Fabricantes    | fab1, fab2, fab5|
+
+| Código         | Valor          |
+|----------------|----------------|
+| Cod_producto   | 4              |
+| Nombre         | Arandela       |
+| Precio         | 1              |
+| Unidades       | 500            |
+| Fabricantes    | fab2, fab3, fab4|
 
 
 
+```json
+db.productos.insertMany([
+  { cod_producto: 3, nombre: 'Alicates', precio: 10, unidades: 25, fabricantes: ['fab1', 'fab2', 'fab5'] },
+  { cod_producto: 4, nombre: 'Arandela', precio: 1, unidades: 500, fabricantes: ['fab2', 'fab3', 'fab4'] }
+])
+```
