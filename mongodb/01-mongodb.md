@@ -248,17 +248,70 @@ db.libros.find( { cantidad: { $exists: true }})
 ```
 
 ## Operador Type (Permite preguntar si un determinado campo corresponde con un tipo)
-[Operador Type](https://www.mongodb.com/docs/manual/reference/operator/query/type/#mongodb-query-op.-type)
-
-1. Mostrar todos los documentos donde el precio sea doble
+ 
+ [Operador Type](https://www.mongodb.com/docs/manual/reference/operator/query/type/#mongodb-query-op.-type)
+ 
+ 1. Mostrar todos los documentos donde el precio sean dobles
+ 
+ ```json
+ db.libros.find({precio:{$type:1}})
+ ```
+ ```json
+ db.libros.find({precio:{$type:16}})
+ ```
+ 
+ ```json
+ db.libros.insertOne({
+   _id:11,
+   titulo:'IA',
+   editorial: 'Terra',
+   precio:125.4,
+   cantidad:20
+ })
+ ```
+ 
+  ```json
+  db.libros.find({precio:{$type:1}}, {_id:0})
+  ```
+ 
+  ```json
+  db.libros.find({precio:{$type:1}}, {_id:0, cantidad:0})
+  ```
+ 
+  ```json
+   db.libros.insertMany([
+  {
+     _id: 12,
+     titulo: 'IA',
+     editorial: 'Terra',
+     precio: 125, 
+ 	cantidad: 20
+   },
+   {
+     _id: 13,
+     titulo: 'Python para todos',
+     editorial: 2001,
+     precio: 200, 
+ 	cantidad: 30
+   }]
+   )
+   ```
+ 
+ 1. Seleccionar los documentos donde la ediatorial sea de tipo entero
+  ```json
+   db.libros.find({editorial:{$type:16}})
+   ```
+  ```json
+   db.libros.find({editorial:{$type:'int'}})
+   ```
+ 
+ 2. Seleccionar todos los documentos  donde la editorial sea string
+ ```json
+ db.libros.find({editorial:{$type:'string'}})
+ ```
 ```json
-db.libros.find({precio:{$type:1}})
-```
-
-2. Seleccionar todos los documentos donde la editorial sea de tipo entero
-```json
-db.libros.find({editorial:{$type:16}})
-```
+ db.libros.find({editorial:{$type:2}})
+ ```
 
 ## Borrar Documentos
 

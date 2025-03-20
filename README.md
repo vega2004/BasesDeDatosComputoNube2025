@@ -2,6 +2,6 @@
 
 
 
-Este repositorio contiene información relevante sobre bases de datos NoSQL, específicamente en MongoDB y bases de datos avanzadas. Está enfocado en procesos ETL (con Microsoft SSIS), Data Warehouse y visualizaciones en Dashboards con Power BI.
+Este repositorio contiene información relevante sobre bases de datos NoSQL, específicamente en MongoDB, así como bases de datos avanzadas y el uso de procesos ETL (Extract, Transform, Load) con Microsoft SSIS. Además, aborda el concepto de Data Warehouse y la creación de Dashboards con Power BI para la visualización de datos.
 
 ![mongodb](./img/images.png)
